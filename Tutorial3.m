@@ -142,10 +142,8 @@ circlemakerforlines(newcenter_x, newcenter_y, radiusofcircle);
 % Calculate the angle with the vertical axis
 deltaY = y(2) - y(1);
 deltaX = x(1) - x(2);
-% angle = atan2(deltaY, deltaX) - pi/2; % Subtracting pi/2 gives the angle with respect to the vertical axis
-% angle = atan2(deltaY, deltaX); 
 angle = atan(deltaY/deltaX); 
-angleDeg = rad2deg(angle); % Convert to degrees, no need for imrotate3
+angleDeg = rad2deg(angle);
 ccwangle = 90 - angleDeg;
 
 % setting the rotation vector
@@ -165,8 +163,6 @@ switch dimension
 end
 
 
-% Rotate the image slice using imrotate with 'bilinear' interpolation and 'loose' bounding box
-% img_rotated = imrotate(img_transfull, 180-angleDeg, 'bilinear', 'loose');
 vol_transfull_rotated = imrotate3(vol_transfull, ccwangle, rvec,  'FillValues', 100);
 
 
@@ -194,3 +190,29 @@ newcenter_y = newrows / 2;
 newcenter_x = newcols / 2;
 
 circlemakerforlines(newcenter_x, newcenter_y, radiusofcircle);
+
+
+% Compute translations based on selected dimension
+switch dimension
+    case 'W'
+        x1 = newcenter_x - w/2 + d_W/2; 
+        y1 = newcenter_y - d/2 + d_D/2;
+        cropRect = [x1, y1, h, d];
+    case 'H'
+        x1 = newcenter_x - h/2 + d_H/2; 
+        y1 = newcenter_y - d/2 + d_D/2;
+        cropRect = [x1, y1, w, d];
+    case 'D'
+        x1 = newcenter_x - w/2 + d_W/2; 
+        y1 = newcenter_y - h/2 + d_H/2;
+        cropRect = [x1, y1, w, h];
+end
+
+
+% Crop the image
+croppedImage = imcrop(img_transfull', cropRect);
+
+% Display the cropped image
+figure(2)
+imshow(croppedImage, []);
+title('Zoomed and Cropped Image');
