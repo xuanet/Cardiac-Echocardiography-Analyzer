@@ -193,41 +193,26 @@ newcenter_x = newcols / 2;
 circlemakerforlines(newcenter_x, newcenter_y, radiusofcircle);
 
 
-% Reorient based on the translations performed earlier
+% Reorient based on the translations
 switch dimension
     case 'W'
         x1 = newcenter_x - w/2 + d_W/2; 
         y1 = newcenter_y - d/2 + d_D/2;
         cropRect = [x1, y1, h, d];
-        % Crop the image
-        croppedImage = imcrop(img_transfull', cropRect);
-
-        % Display the cropped image
-        figure(2)
-        imshow(croppedImage, []);
-        title('Reoriented Width');
-
     case 'H'
         x1 = newcenter_x - h/2 + d_H/2; 
         y1 = newcenter_y - d/2 + d_D/2;
         cropRect = [x1, y1, w, d];
-        % Crop the image
-        croppedImage = imcrop(img_transfull', cropRect);
-
-        % Display the cropped image
-        figure(2)
-        imshow(croppedImage, []);
-        title('Reoriented Height');
-
     case 'D'
         x1 = newcenter_x - w/2 + d_W/2; 
         y1 = newcenter_y - h/2 + d_H/2;
         cropRect = [x1, y1, w, h];
-        % Crop the image
-        croppedImage = imcrop(img_transfull', cropRect);
-
-        % Display the cropped image
-        figure(2)
-        imshow(croppedImage, []);
-        title('Reoriented Depth');
 end
+
+% Crop the image
+croppedImage = imcrop(img_transfull', cropRect);
+
+% Display the cropped image
+figure(2)
+imshow(croppedImage, []);
+title('Zoomed and Cropped Image');
