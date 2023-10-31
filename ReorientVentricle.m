@@ -4,8 +4,10 @@ function [outputImage, selectedDimension] = ReorientVentricle()
     % Created by Jose on 10/26/23
     % Updated by Kevin on 10/27/23
     % Updated by Jose on 10/27/23
-    
-    currentVersion = "10/27/23";
+    % Updated by Jose on 10/30/23
+    % Updated by Jose on 10/31/23
+
+    currentVersion = "10/26/23";
     
     
     heart = resampleDicom('05.dcm');
@@ -26,13 +28,11 @@ function [outputImage, selectedDimension] = ReorientVentricle()
     w = floor(heart.width);
     h = floor(heart.height);
 
-
     widthdistance = heart.widthspan; %cm
     heightdistance = heart.heightspan; %cm
     depthdistance = heart.depthspan; %cm
     
-    
-    h2 = figure(2);
+    h2 = figure(1);
     % width
     sp2_1 = subplot(2, 2, 1);
     imshow(imgW', []);
@@ -79,11 +79,32 @@ function [outputImage, selectedDimension] = ReorientVentricle()
     
     midpoint = midptofline(x(1), y(1), x(2), y(2));
     lengthofline = distanceinpixels(x(1), y(1), x(2), y(2));
+
+
+    % Calculate pixels per centimeter ratio
+    switch dimension
+        case 'W'
+            pixelsPerCm = w / widthdistance;
+        case 'H'
+            pixelsPerCm = h / heightdistance;
+        case 'D'
+            pixelsPerCm = d / depthdistance;
+        otherwise
+            error('Unexpected dimension.');
+    end
+
+    % Calculate the length of the line in centimeters
+    lengthOfLineCm = lengthofline / pixelsPerCm;
+
+% Display the length of the line in centimeters
+fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     
     centerX = midpoint(1);
     centerY = midpoint(2);
     radiusofcircle = lengthofline/8;
     circlemakerforlines(centerX, centerY, radiusofcircle);
+
+
     
     % Default translations
     d_D = 0;
@@ -123,7 +144,7 @@ function [outputImage, selectedDimension] = ReorientVentricle()
     end
     
     img_transfull = squeeze(extract_transfull);
-    figure(2)
+    figure(1)
     imshow(img_transfull', []);
     title(originalTitle); % Set the original title
     
@@ -178,7 +199,7 @@ function [outputImage, selectedDimension] = ReorientVentricle()
     end
     
     img_transfull = squeeze(extract_transfull);
-    figure(2)
+    figure(1)
     imshow(img_transfull', []);
     title(originalTitle); % Set the original title
     
@@ -199,7 +220,7 @@ function [outputImage, selectedDimension] = ReorientVentricle()
             croppedImage = imcrop(img_transfull', cropRect);
     
             % Display the cropped image
-            figure(2)
+            figure(1)
             imshow(croppedImage, []);
             title('Reoriented Width');
             dimension = 'W';
@@ -212,7 +233,7 @@ function [outputImage, selectedDimension] = ReorientVentricle()
             croppedImage = imcrop(img_transfull', cropRect);
     
             % Display the cropped image
-            figure(2)
+            figure(1)
             imshow(croppedImage, []);
             title('Reoriented Height');
             dimension = 'H';
@@ -225,7 +246,7 @@ function [outputImage, selectedDimension] = ReorientVentricle()
             croppedImage = imcrop(img_transfull', cropRect);
     
             % Display the cropped image
-            figure(2)
+            figure(1)
             imshow(croppedImage, []);
             title('Reoriented Depth');
             dimension = 'd';
