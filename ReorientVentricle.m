@@ -1,4 +1,4 @@
-function [outputImage, selectedDimension] = ReorientVentricle()
+function [outputVolume] = ReorientVentricle(heart, time)
     
     
     % Created by Jose on 10/26/23
@@ -6,19 +6,19 @@ function [outputImage, selectedDimension] = ReorientVentricle()
     % Updated by Jose on 10/27/23
     % Updated by Jose on 10/30/23
     % Updated by Jose on 10/31/23
+    % Updated by Jose on 11/7/23
 
     currentVersion = "10/26/23";
     
-    
-    heart = resampleDicom('05.dcm');
+
     
     centerH = floor(heart.height/2);
     centerW = floor(heart.width/2);
     centerD = floor(heart.depth/2);
     
-    extractW = heart.data(centerW,:,:,1);
-    extractH = heart.data(:,centerH,:,1);
-    extractD = heart.data(:,:,centerD,1);
+    extractW = heart.data(centerW,:,:,time);
+    extractH = heart.data(:,centerH,:,time);
+    extractD = heart.data(:,:,centerD,time);
     
     imgW = squeeze(extractW);
     imgH = squeeze(extractH);
@@ -32,7 +32,7 @@ function [outputImage, selectedDimension] = ReorientVentricle()
     heightdistance = heart.heightspan; %cm
     depthdistance = heart.depthspan; %cm
     
-    h2 = figure(1);
+    figure(1);
     % width
     sp2_1 = subplot(2, 2, 1);
     imshow(imgW', []);
@@ -133,13 +133,13 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     % Extract the relevant slice based on the selected dimension
     switch dimension
         case 'W'
-            extract_transfull = vol_transfull(centerW, :, :, 1);
+            extract_transfull = vol_transfull(centerW, :, :, time);
             originalTitle = get(get(sp2_1, 'Title'), 'String');
         case 'H'
-            extract_transfull = vol_transfull(:, centerH, :, 1);
+            extract_transfull = vol_transfull(:, centerH, :, time);
             originalTitle = get(get(sp2_2, 'Title'), 'String');
         case 'D'
-            extract_transfull = vol_transfull(:, :, centerD, 1);
+            extract_transfull = vol_transfull(:, :, centerD, time);
             originalTitle = get(get(sp2_3, 'Title'), 'String');
     end
     
@@ -188,13 +188,13 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     % Extract the relevant slice based on the selected dimension
     switch dimension
         case 'W'
-            extract_transfull = vol_transfull_rotated(centerW, :, :, 1);
+            extract_transfull = vol_transfull_rotated(centerW, :, :, time);
             originalTitle = get(get(sp2_1, 'Title'), 'String');
         case 'H'
-            extract_transfull = vol_transfull_rotated(:, centerH, :, 1);
+            extract_transfull = vol_transfull_rotated(:, centerH, :, time);
             originalTitle = get(get(sp2_2, 'Title'), 'String');
         case 'D'
-            extract_transfull = vol_transfull_rotated(:, :, centerD, 1);
+            extract_transfull = vol_transfull_rotated(:, :, centerD, time);
             originalTitle = get(get(sp2_3, 'Title'), 'String');
     end
     
@@ -210,6 +210,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     circlemakerforlines(newcenter_x, newcenter_y, radiusofcircle);
     
     
+
     % Reorient based on the translations performed earlier
     switch dimension
         case 'W'
@@ -251,7 +252,86 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
             title('Reoriented Depth');
             dimension = 'd';
     end
+
+
+
+    [newCropHeight, newCropWidth] = size(croppedImage);
     
-    selectedDimension = dimension;
-    outputImage = croppedImage;
+    % Preallocate the array for the cropped volume
+    % The depth of the volume will depend on the selected dimension
+    switch dimension
+        case 'W'
+            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 1), time);
+        case 'H'
+            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 2), time);
+        case 'D'
+            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 3), time);
+    end
+    disp(size(croppedVolume))
+
+
+
+    switch dimension
+        case 'W'
+            % Loop through each slice depending on the selected dimension
+            for i = 1:size(vol_transfull_rotated, 1)
+
+                slice = squeeze(vol_transfull_rotated(i, :, :, time));
+                x1 = newcenter_x - w/2 + d_W/2; 
+                y1 = newcenter_y - d/2 + d_D/2; 
+                cropRect = [x1, y1, h, d]; 
+                
+                % Crop the slice to match the display orientation
+                croppedSlice = imcrop(slice', cropRect);
+                
+                % Assign the cropped slice into the corresponding position of the 3D volume
+                croppedVolume(:, :, i, time) = croppedSlice;
+            end
+            finaltitle = 'Reoriented Width';
+
+        case 'H'
+            % Loop through each slice depending on the selected dimension
+            for i = 1:size(vol_transfull_rotated, 2)
+
+                slice = squeeze(vol_transfull_rotated(:, i, :, time));
+                x1 = newcenter_x - h/2 + d_H/2; 
+                y1 = newcenter_y - d/2 + d_D/2; 
+                cropRect = [x1, y1, w, d]; 
+                
+                % Crop the slice to match the display orientation
+                croppedSlice = imcrop(slice', cropRect);
+
+                croppedVolume(:, :, i, time) = croppedSlice;
+            end
+            finaltitle = 'Reoriented Height';
+
+        case 'D'
+            % Loop through each slice depending on the selected dimension
+            for i = 1:size(vol_transfull_rotated, 3)
+
+                slice = squeeze(vol_transfull_rotated(:, :, i, time));
+                x1 =newcenter_x - w/2 + d_W/2; 
+                y1 = newcenter_y - h/2 + d_H/2; 
+                cropRect = [x1, y1, w, h]; 
+                
+                % Crop the slice to match the display orientation
+                croppedSlice = imcrop(slice', cropRect);
+                
+                % Assign the cropped slice into the corresponding position of the 3D volume
+                croppedVolume(:, :, i, time) = croppedSlice;
+            end
+            finaltitle = 'Reoriented Depth';
+    end
+    
+    new_center = floor(size(croppedVolume, 3)/2);
+    
+    new_extract = croppedVolume(:,:,new_center,1);
+
+    finalimg = squeeze(new_extract);
+
+    figure(1)
+    imshow(finalimg, []);
+    title(finaltitle); % Set the final title
+
+    outputVolume = croppedVolume; % This is now a 3D volume
 end 

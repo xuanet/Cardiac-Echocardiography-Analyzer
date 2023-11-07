@@ -6,18 +6,14 @@ close all;
 
 heart = resampleDicom('05.dcm');
 
+time = 1;
+
 % Call the ReorientVentricle function
-%[outputVolume, selectedDimension] = ReorientVentricle(heart);
-[outputVolume, selectedDimension] = ReorientVentricleCopy(heart);
+[outputVolume] = ReorientVentricle(heart, time);
 outputImageSize = size(outputVolume);
 disp(outputImageSize);
 
-displayNewSlices(outputImage);
+%displayNewSlices(outputImage);
 
 
-if ~isempty(outputImage)
-    % Call the drawEndocardialBoundary function to draw the endocardial boundary
-    drawEndocardialBoundary(imageVolume, outputImage, selectedDimension);
-else
-    disp('ReorientVentricle function did not return an image.');
-end
+%drawEndocardialBoundary(imageVolume, outputImage, selectedDimension);
