@@ -8,12 +8,10 @@ heart = resampleDicom('05.dcm');
 
 time = 1;
 
-% Call the ReorientVentricle function
+% Reorient the ventricle with respct to the anatomy of interest (i.e., the
+% long axis
 [outputVolume] = ReorientVentricle(heart, time);
-outputImageSize = size(outputVolume);
-disp(outputImageSize);
-
-%displayNewSlices(outputImage);
 
 
-%drawEndocardialBoundary(imageVolume, outputImage, selectedDimension);
+
+drawEndocardialBoundary(outputVolume);
