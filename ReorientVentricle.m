@@ -10,7 +10,7 @@ function [outputVolume] = ReorientVentricle(heart, time)
 
     currentVersion = "10/26/23";
     
-
+    
     
     centerH = floor(heart.height/2);
     centerW = floor(heart.width/2);
@@ -216,7 +216,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
         case 'W'
             x1 = newcenter_x - w/2 + d_W/2; 
             y1 = newcenter_y - d/2 + d_D/2;
-            cropRect = [x1, y1, h, d];
+            cropRect = [x1, y1, h-1, d-1];
             % Crop the image
             croppedImage = imcrop(img_transfull', cropRect);
     
@@ -229,7 +229,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
         case 'H'
             x1 = newcenter_x - h/2 + d_H/2; 
             y1 = newcenter_y - d/2 + d_D/2;
-            cropRect = [x1, y1, w, d];
+            cropRect = [x1, y1, w-1, d-1];
             % Crop the image
             croppedImage = imcrop(img_transfull', cropRect);
     
@@ -242,7 +242,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
         case 'D'
             x1 = newcenter_x - w/2 + d_W/2; 
             y1 = newcenter_y - h/2 + d_H/2;
-            cropRect = [x1, y1, w, h];
+            cropRect = [x1, y1, w-1, h-1];
             % Crop the image
             croppedImage = imcrop(img_transfull', cropRect);
     
@@ -267,7 +267,6 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
         case 'D'
             croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 3), time);
     end
-    disp(size(croppedVolume))
 
 
 
@@ -279,7 +278,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
                 slice = squeeze(vol_transfull_rotated(i, :, :, time));
                 x1 = newcenter_x - w/2 + d_W/2; 
                 y1 = newcenter_y - d/2 + d_D/2; 
-                cropRect = [x1, y1, h, d]; 
+                cropRect = [x1, y1, h-1, d-1]; 
                 
                 % Crop the slice to match the display orientation
                 croppedSlice = imcrop(slice', cropRect);
@@ -296,7 +295,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
                 slice = squeeze(vol_transfull_rotated(:, i, :, time));
                 x1 = newcenter_x - h/2 + d_H/2; 
                 y1 = newcenter_y - d/2 + d_D/2; 
-                cropRect = [x1, y1, w, d]; 
+                cropRect = [x1, y1, w-1, d-1]; 
                 
                 % Crop the slice to match the display orientation
                 croppedSlice = imcrop(slice', cropRect);
@@ -312,7 +311,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
                 slice = squeeze(vol_transfull_rotated(:, :, i, time));
                 x1 =newcenter_x - w/2 + d_W/2; 
                 y1 = newcenter_y - h/2 + d_H/2; 
-                cropRect = [x1, y1, w, h]; 
+                cropRect = [x1, y1, w-1, h-1]; 
                 
                 % Crop the slice to match the display orientation
                 croppedSlice = imcrop(slice', cropRect);
@@ -323,6 +322,10 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
             finaltitle = 'Reoriented Depth';
     end
     
+    disp(size(croppedVolume, 1));
+    disp(size(croppedVolume, 2));
+    disp(size(croppedVolume, 3));
+
     new_center = floor(size(croppedVolume, 3)/2);
     
     new_extract = croppedVolume(:,:,new_center,1);
