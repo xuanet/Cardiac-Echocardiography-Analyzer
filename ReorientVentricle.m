@@ -128,7 +128,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     end
     
     % Compute the translated volume
-    vol_transfull = imtranslate(heart.data(:,:,:,1), [d_W d_H d_D], 'OutputView', 'full', 'FillValues', 128);
+    vol_transfull = imtranslate(heart.data(:,:,:,time), [d_W d_H d_D], 'OutputView', 'full', 'FillValues', 128);
     
     % Extract the relevant slice based on the selected dimension
     switch dimension
