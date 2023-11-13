@@ -1,4 +1,4 @@
-function [outputVolume, selectedDimension] = ReorientVentricleCopy(heart)
+function [outputVolume] = ReorientVentricleCopy(heart, time)
     
     
     % Created by Jose on 10/26/23
@@ -6,97 +6,45 @@ function [outputVolume, selectedDimension] = ReorientVentricleCopy(heart)
     % Updated by Jose on 10/27/23
     % Updated by Jose on 10/30/23
     % Updated by Jose on 10/31/23
+    % Updated by Jose on 11/7/23
 
     currentVersion = "10/26/23";
-    
 
+    data = heart.data(:,:,:,time);
     
-    centerH = floor(heart.height/2);
     centerW = floor(heart.width/2);
+    centerH = floor(heart.height/2);
     centerD = floor(heart.depth/2);
-    
-    extractW = heart.data(centerW,:,:,1);
-    extractH = heart.data(:,centerH,:,1);
-    extractD = heart.data(:,:,centerD,1);
-    
-    imgW = squeeze(extractW);
-    imgH = squeeze(extractH);
-    imgD = squeeze(extractD); 
-    
-    d = floor(heart.depth);
-    w = floor(heart.width);
-    h = floor(heart.height);
 
+    extractW = data(centerW,:,:);
+    imgW = squeeze(extractW);
+    
+    w = floor(heart.width);
     widthdistance = heart.widthspan; %cm
-    heightdistance = heart.heightspan; %cm
-    depthdistance = heart.depthspan; %cm
+
     
     figure(1);
     % width
-    sp2_1 = subplot(2, 2, 1);
     imshow(imgW', []);
-    title('Width');
-    line([centerH centerH], [1 d],'Color','red','LineWidth',2) 
-    line([1 h], [centerD centerD],'Color','green','LineWidth',2)
-    addborder(1, d, h, 1, 'blue');
-    
-    % height
-    sp2_2 = subplot(2, 2, 2);
-    imshow(imgH', []);
-    title('Height');
-    line([centerW centerW], [1 d],'Color','blue','LineWidth',2) 
-    line([1 w], [centerD centerD],'Color','green','LineWidth',2)
-    addborder(1, d, w, 1, 'red');
-    
-    
-    % depth
-    sp2_3 = subplot(2, 2, 3);
-    imshow(imgD', []);
-    title('Depth');
-    line([centerW centerW], [1 h],'Color','blue','LineWidth',2) 
-    line([1 w], [centerH centerH],'Color','red','LineWidth',2)
-    addborder(1, h, w, 1, 'green');
-    
+    title('Original Width');
     
     [x, y] = ginput(2);
     
     % Identify the subplot user clicked on
-    ax = gca; % Get the current axes handle
-    if ax == sp2_1
-        dimension = 'W';
-    elseif ax == sp2_2
-        dimension = 'H';
-    elseif ax == sp2_3
-        dimension = 'D';
-        disp 'You have selected the Depth image, which has incorrect rotations as of' 
-        disp(currentVersion);
-    else
-        error('Unexpected axes handle.');
-    end
     
     linemaker(x(1), y(1), x(2), y(2));
-    
     midpoint = midptofline(x(1), y(1), x(2), y(2));
     lengthofline = distanceinpixels(x(1), y(1), x(2), y(2));
 
 
     % Calculate pixels per centimeter ratio
-    switch dimension
-        case 'W'
-            pixelsPerCm = w / widthdistance;
-        case 'H'
-            pixelsPerCm = h / heightdistance;
-        case 'D'
-            pixelsPerCm = d / depthdistance;
-        otherwise
-            error('Unexpected dimension.');
-    end
+    pixelsPerCm = w / widthdistance;
 
     % Calculate the length of the line in centimeters
     lengthOfLineCm = lengthofline / pixelsPerCm;
 
-% Display the length of the line in centimeters
-fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
+    % Display the length of the line in centimeters
+    fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     
     centerX = midpoint(1);
     centerY = midpoint(2);
@@ -104,48 +52,21 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     circlemakerforlines(centerX, centerY, radiusofcircle);
 
 
+
     
-    % Default translations
-    d_D = 0;
-    d_H = 0;
-    d_W = 0;
-    
-    % Compute translations based on selected dimension
-    switch dimension
-        case 'W'
-            d_D = 2 * (heart.depth/2 - centerY);
-            d_W = 2 * (heart.width/2 - centerX);
-            d_H = 0;
-        case 'H'
-            d_D = 2 * (heart.depth/2 - centerY); 
-            d_H = 2 * (heart.width/2 - centerX); 
-            d_W = 0; 
-        case 'D'
-            d_H = 2 * (heart.depth/2 - centerY);
-            d_W = 2 * (heart.width/2 - centerX);
-            d_D = 0; 
-    end
-    
+    d_W = 2 * (heart.width/2 - centerX);
+
     % Compute the translated volume
-    vol_transfull = imtranslate(heart.data(:,:,:,1), [d_W d_H d_D], 'OutputView', 'full', 'FillValues', 128);
+    vol_transfull = imtranslate(data, [d_W 0 0], 'OutputView', 'full', 'FillValues', 128);
     
     % Extract the relevant slice based on the selected dimension
-    switch dimension
-        case 'W'
-            extract_transfull = vol_transfull(centerW, :, :, 1);
-            originalTitle = get(get(sp2_1, 'Title'), 'String');
-        case 'H'
-            extract_transfull = vol_transfull(:, centerH, :, 1);
-            originalTitle = get(get(sp2_2, 'Title'), 'String');
-        case 'D'
-            extract_transfull = vol_transfull(:, :, centerD, 1);
-            originalTitle = get(get(sp2_3, 'Title'), 'String');
-    end
+    extract_transfull = vol_transfull(centerW, :, :);
+
     
     img_transfull = squeeze(extract_transfull);
-    figure(1)
+    figure(2)
     imshow(img_transfull', []);
-    title(originalTitle); % Set the original title
+    title("Translated Width"); % Set the original title
     
     [newrows, newcols, ~] = size(img_transfull');
     newcenter_y = newrows / 2;
@@ -165,42 +86,18 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     
     % setting the rotation vector
     rvecWidth = [0 -1 0];
-    rvecHeight = [1 0 0];
-    rvecDepth = [0 0 -1];
-    
-    rvec = [0 0 0];
-    
-    switch dimension
-        case 'W'
-            rvec = rvecWidth;
-        case 'H'
-            rvec = rvecHeight;   
-        case 'D'
-            rvec = rvecDepth;
-    end
     
     
-    vol_transfull_rotated = imrotate3(vol_transfull, ccwangle, rvec,  'FillValues', 100);
-    
+    vol_transfull_rotated = imrotate3(vol_transfull, ccwangle, rvecWidth, "linear", "crop");
     
     
     % Extract the relevant slice based on the selected dimension
-    switch dimension
-        case 'W'
-            extract_transfull = vol_transfull_rotated(centerW, :, :, 1);
-            originalTitle = get(get(sp2_1, 'Title'), 'String');
-        case 'H'
-            extract_transfull = vol_transfull_rotated(:, centerH, :, 1);
-            originalTitle = get(get(sp2_2, 'Title'), 'String');
-        case 'D'
-            extract_transfull = vol_transfull_rotated(:, :, centerD, 1);
-            originalTitle = get(get(sp2_3, 'Title'), 'String');
-    end
+    extract_transfull = vol_transfull_rotated(centerW, :, :);
     
     img_transfull = squeeze(extract_transfull);
-    figure(1)
+    figure(3)
     imshow(img_transfull', []);
-    title(originalTitle); % Set the original title
+    title("Rotated Width"); % Set the original title
     
     [newrows, newcols, ~] = size(img_transfull');
     newcenter_y = newrows / 2;
@@ -210,115 +107,95 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     
     
 
-    % Reorient based on the translations performed earlier
-    switch dimension
-        case 'W'
-            x1 = newcenter_x - w/2 + d_W/2; 
-            y1 = newcenter_y - d/2 + d_D/2;
-            cropRect = [x1, y1, h, d];
-            % Crop the image
-            croppedImage = imcrop(img_transfull', cropRect);
-    
-            % Display the cropped image
-            figure(1)
-            imshow(croppedImage, []);
-            title('Reoriented Width');
-            dimension = 'W';
-
-        case 'H'
-            x1 = newcenter_x - h/2 + d_H/2; 
-            y1 = newcenter_y - d/2 + d_D/2;
-            cropRect = [x1, y1, w, d];
-            % Crop the image
-            croppedImage = imcrop(img_transfull', cropRect);
-    
-            % Display the cropped image
-            figure(1)
-            imshow(croppedImage, []);
-            title('Reoriented Height');
-            dimension = 'H';
-        
-        case 'D'
-            x1 = newcenter_x - w/2 + d_W/2; 
-            y1 = newcenter_y - h/2 + d_H/2;
-            cropRect = [x1, y1, w, h];
-            % Crop the image
-            croppedImage = imcrop(img_transfull', cropRect);
-    
-            % Display the cropped image
-            figure(1)
-            imshow(croppedImage, []);
-            title('Reoriented Depth');
-            dimension = 'd';
-    end
-
-
-
-    [newCropHeight, newCropWidth] = size(croppedImage);
+%     % Reorient based on the translations performed earlier
+%     x1 = newcenter_x - w/2 + d_W/2; 
+%     y1 = newcenter_y - d/2 + d_D/2;
+%     cropRect = [x1, y1, h-1, d-1];
+%     % Crop the image
+%     croppedImage = imcrop(img_transfull', cropRect);
+%     
+%     % Display the cropped image
+%     figure(4)
+%     imshow(croppedImage, []);
+%     title('Cropped Width');
+%     dimension = 'W';
+% 
+%        
+% 
+%     [newCropHeight, newCropWidth] = size(croppedImage);
     
     % Preallocate the array for the cropped volume
     % The depth of the volume will depend on the selected dimension
-    switch dimension
-        case 'W'
-            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 1), 1);
-        case 'H'
-            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 2), 1);
-        case 'D'
-            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 3), 1);
-    end
+
+%     croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 1), time);
 
 
 
+%     switch dimension
+%         case 'W'
+%             % Loop through each slice depending on the selected dimension
+%             for i = 1:size(vol_transfull_rotated, 1)
+% 
+%                 slice = squeeze(vol_transfull_rotated(i, :, :, time));
+%                 x1 = newcenter_x - w/2 + d_W/2; 
+%                 y1 = newcenter_y - d/2 + d_D/2; 
+%                 cropRect = [x1, y1, h-1, d-1]; 
+%                 
+%                 % Crop the slice to match the display orientation
+%                 croppedSlice = imcrop(slice', cropRect);
+%                 
+%                 % Assign the cropped slice into the corresponding position of the 3D volume
+%                 croppedVolume(:, :, i) = croppedSlice;
+%             end
+%             finaltitle = 'Reoriented Width';
+% 
+%         case 'H'
+%             % Loop through each slice depending on the selected dimension
+%             for i = 1:size(vol_transfull_rotated, 2)
+% 
+%                 slice = squeeze(vol_transfull_rotated(:, i, :, time));
+%                 x1 = newcenter_x - h/2 + d_H/2; 
+%                 y1 = newcenter_y - d/2 + d_D/2; 
+%                 cropRect = [x1, y1, w-1, d-1]; 
+%                 
+%                 % Crop the slice to match the display orientation
+%                 croppedSlice = imcrop(slice', cropRect);
+% 
+%                 croppedVolume(:, :, i, time) = croppedSlice;
+%             end
+%             finaltitle = 'Reoriented Height';
+% 
+%         case 'D'
+%             % Loop through each slice depending on the selected dimension
+%             for i = 1:size(vol_transfull_rotated, 3)
+% 
+%                 slice = squeeze(vol_transfull_rotated(:, :, i, time));
+%                 x1 =newcenter_x - w/2 + d_W/2; 
+%                 y1 = newcenter_y - h/2 + d_H/2; 
+%                 cropRect = [x1, y1, w-1, h-1]; 
+%                 
+%                 % Crop the slice to match the display orientation
+%                 croppedSlice = imcrop(slice', cropRect);
+%                 
+%                 % Assign the cropped slice into the corresponding position of the 3D volume
+%                 croppedVolume(:, :, i, time) = croppedSlice;
+%             end
+%             finaltitle = 'Reoriented Depth';
+%     end
+%     
+%     disp(size(croppedVolume, 1));
+%     disp(size(croppedVolume, 2));
+%     disp(size(croppedVolume, 3));
+% 
+%     new_center = floor(size(croppedVolume, 3)/2);
+%     
+%     new_extract = croppedVolume(:,:,new_center,1);
+% 
+%     finalimg = squeeze(new_extract);
+% 
+%     figure(1)
+%     imshow(finalimg, []);
+%     title(finaltitle); % Set the final title
 
-    switch dimension
-        case 'W'
-            % Loop through each slice depending on the selected dimension
-            for i = 1:size(vol_transfull_rotated, 1)
-
-                slice = squeeze(vol_transfull_rotated(i, :, :, 1));
-                x1 = newcenter_x - w/2 + d_W/2; % Adjust as needed
-                y1 = newcenter_y - d/2 + d_D/2; % Adjust as needed
-                cropRect = [x1, y1, h, d]; % Adjust the width and height as needed for the crop
-                
-                % Crop the slice and rotate it to match the display orientation
-                croppedSlice = imcrop(slice', cropRect);
-                
-                % Assign the cropped slice into the corresponding position of the 3D volume
-                croppedVolume(i, :, :, 1) = croppedSlice;
-            end
-
-        case 'H'
-            % Loop through each slice depending on the selected dimension
-            for i = 1:size(vol_transfull_rotated, 2)
-
-                slice = squeeze(vol_transfull_rotated(:, i, :, 1));
-                x1 = newcenter_x - h/2 + d_H/2; % Adjust as needed
-                y1 = newcenter_y - d/2 + d_D/2; % Adjust as needed
-                cropRect = [x1, y1, w, d]; % Adjust the width and height as needed for the crop
-                
-                % Crop the slice and rotate it to match the display orientation
-                croppedSlice = imcrop(slice', cropRect);
-                croppedVolume(:, i, :, 1) = croppedSlice;
-            end
-
-        case 'D'
-            % Loop through each slice depending on the selected dimension
-            for i = 1:size(vol_transfull_rotated, 3)
-
-                slice = squeeze(vol_transfull_rotated(:, :, i, 1));
-                x1 =newcenter_x - w/2 + d_W/2; % Adjust as needed
-                y1 = newcenter_y - h/2 + d_H/2; % Adjust as needed
-                cropRect = [x1, y1, w, h]; % This will stay the same as it is the depth image
-                
-                % Crop the slice and rotate it to match the display orientation
-                croppedSlice = imcrop(slice', cropRect);
-                
-                % Assign the cropped slice into the corresponding position of the 3D volume
-                 croppedVolume(:, :, i, 1) = croppedSlice;
-            end
-    end
-    
-    
-    selectedDimension = dimension;
-    outputVolume = croppedVolume; % This is now a 3D volume
+    outputVolume = vol_transfull_rotated; % This is now a 3D volume
 end 
