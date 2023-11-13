@@ -1,4 +1,4 @@
-function [outputVolume] = ReorientVentricle(heart, time)
+function [outputVolume, selectedDimension] = ReorientVentricle(heart, time)
     
     
     % Created by Jose on 10/26/23
@@ -183,8 +183,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     end
     
     
-    vol_transfull_rotated = imrotate3(vol_transfull, ccwangle, rvec,  'FillValues', 100);
-    
+    vol_transfull_rotated = imrotate3(vol_transfull, ccwangle, rvec, 'FillValues', 100);
     
     
     % Extract the relevant slice based on the selected dimension
@@ -212,7 +211,6 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     circlemakerforlines(newcenter_x, newcenter_y, radiusofcircle);
     
     
-
     % Reorient based on the translations performed earlier
     switch dimension
         case 'W'
@@ -263,11 +261,11 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     % The depth of the volume will depend on the selected dimension
     switch dimension
         case 'W'
-            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 1));
+            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 1)); % h, d, w
         case 'H'
-            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 2));
+            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 2)); % w, d, h
         case 'D'
-            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 3));
+            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 3)); % w, h, d
     end
 
 
@@ -324,9 +322,21 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
             finaltitle = 'Reoriented Depth';
     end
 
-    new_center = floor(size(croppedVolume, 3)/2);
+
+    % reordering the dimensions in the original order
+    switch dimension
+        case 'W'
+            newOrder = [3, 1, 2];
+            FinalcroppedVolume = permute(croppedVolume, newOrder);
+            new_center = floor(size(FinalcroppedVolume, 1)/2);
+            new_extract = FinalcroppedVolume(new_center,:,:);
     
-    new_extract = croppedVolume(:,:,new_center);
+        case 'H'
+            newOrder = [1, 3, 2];
+            FinalcroppedVolume = permute(croppedVolume, newOrder);
+            new_center = floor(size(FinalcroppedVolume, 2)/2);
+            new_extract = FinalcroppedVolume(:,new_center,:);
+    end
 
     finalimg = squeeze(new_extract);
 
@@ -335,4 +345,5 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     title(finaltitle); % Set the final title
 
     outputVolume = croppedVolume; % This is now a 3D volume
+    selectedDimension = dimension;
 end 

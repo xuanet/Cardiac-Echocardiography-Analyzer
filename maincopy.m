@@ -8,13 +8,13 @@ heart = resampleDicom('05.dcm');
 
 time = 1;
 
+
 % disp(size(heart))
 
 
 % Reorient the ventricle with respct to the anatomy of interest (i.e., the
 % long axis
-outputVolume = ReorientVentricleCopy(heart, time);
+[outputVolume, selectedDimension] = ReorientVentricle(heart, time);
 
 
-% 
-findVolume(outputVolume,4);
+findVolume(outputVolume, 4, selectedDimension);
