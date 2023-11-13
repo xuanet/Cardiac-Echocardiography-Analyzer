@@ -6,7 +6,7 @@ close all;
 
 heart = resampleDicom('05.dcm');
 
-time = 1;
+time = 5;
 
 % Reorient the ventricle with respct to the anatomy of interest (i.e., the
 % long axis
@@ -14,4 +14,4 @@ time = 1;
 
 
 
-drawEndocardialBoundary(outputVolume);
+%drawEndocardialBoundary(outputVolume);

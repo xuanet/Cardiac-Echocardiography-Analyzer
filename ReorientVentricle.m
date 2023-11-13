@@ -7,11 +7,13 @@ function [outputVolume] = ReorientVentricle(heart, time)
     % Updated by Jose on 10/30/23
     % Updated by Jose on 10/31/23
     % Updated by Jose on 11/7/23
+    % Final Update by Jose on 11/12/23
 
     currentVersion = "10/26/23";
     
     
     
+
     centerH = floor(heart.height/2);
     centerW = floor(heart.width/2);
     centerD = floor(heart.depth/2);
@@ -133,13 +135,13 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     % Extract the relevant slice based on the selected dimension
     switch dimension
         case 'W'
-            extract_transfull = vol_transfull(centerW, :, :, time);
+            extract_transfull = vol_transfull(centerW, :, :);
             originalTitle = get(get(sp2_1, 'Title'), 'String');
         case 'H'
-            extract_transfull = vol_transfull(:, centerH, :, time);
+            extract_transfull = vol_transfull(:, centerH, :);
             originalTitle = get(get(sp2_2, 'Title'), 'String');
         case 'D'
-            extract_transfull = vol_transfull(:, :, centerD, time);
+            extract_transfull = vol_transfull(:, :, centerD);
             originalTitle = get(get(sp2_3, 'Title'), 'String');
     end
     
@@ -188,13 +190,13 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     % Extract the relevant slice based on the selected dimension
     switch dimension
         case 'W'
-            extract_transfull = vol_transfull_rotated(centerW, :, :, time);
+            extract_transfull = vol_transfull_rotated(centerW, :, :);
             originalTitle = get(get(sp2_1, 'Title'), 'String');
         case 'H'
-            extract_transfull = vol_transfull_rotated(:, centerH, :, time);
+            extract_transfull = vol_transfull_rotated(:, centerH, :);
             originalTitle = get(get(sp2_2, 'Title'), 'String');
         case 'D'
-            extract_transfull = vol_transfull_rotated(:, :, centerD, time);
+            extract_transfull = vol_transfull_rotated(:, :, centerD);
             originalTitle = get(get(sp2_3, 'Title'), 'String');
     end
     
@@ -275,7 +277,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
             % Loop through each slice depending on the selected dimension
             for i = 1:size(vol_transfull_rotated, 1)
 
-                slice = squeeze(vol_transfull_rotated(i, :, :, time));
+                slice = squeeze(vol_transfull_rotated(i, :, :));
                 x1 = newcenter_x - w/2 + d_W/2; 
                 y1 = newcenter_y - d/2 + d_D/2; 
                 cropRect = [x1, y1, h-1, d-1]; 
@@ -284,7 +286,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
                 croppedSlice = imcrop(slice', cropRect);
                 
                 % Assign the cropped slice into the corresponding position of the 3D volume
-                croppedVolume(:, :, i, time) = croppedSlice;
+                croppedVolume(:, :, i) = croppedSlice;
             end
             finaltitle = 'Reoriented Width';
 
@@ -292,7 +294,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
             % Loop through each slice depending on the selected dimension
             for i = 1:size(vol_transfull_rotated, 2)
 
-                slice = squeeze(vol_transfull_rotated(:, i, :, time));
+                slice = squeeze(vol_transfull_rotated(:, i, :));
                 x1 = newcenter_x - h/2 + d_H/2; 
                 y1 = newcenter_y - d/2 + d_D/2; 
                 cropRect = [x1, y1, w-1, d-1]; 
@@ -300,7 +302,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
                 % Crop the slice to match the display orientation
                 croppedSlice = imcrop(slice', cropRect);
 
-                croppedVolume(:, :, i, time) = croppedSlice;
+                croppedVolume(:, :, i) = croppedSlice;
             end
             finaltitle = 'Reoriented Height';
 
@@ -308,7 +310,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
             % Loop through each slice depending on the selected dimension
             for i = 1:size(vol_transfull_rotated, 3)
 
-                slice = squeeze(vol_transfull_rotated(:, :, i, time));
+                slice = squeeze(vol_transfull_rotated(:, :, i));
                 x1 =newcenter_x - w/2 + d_W/2; 
                 y1 = newcenter_y - h/2 + d_H/2; 
                 cropRect = [x1, y1, w-1, h-1]; 
@@ -317,18 +319,14 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
                 croppedSlice = imcrop(slice', cropRect);
                 
                 % Assign the cropped slice into the corresponding position of the 3D volume
-                croppedVolume(:, :, i, time) = croppedSlice;
+                croppedVolume(:, :, i) = croppedSlice;
             end
             finaltitle = 'Reoriented Depth';
     end
-    
-    disp(size(croppedVolume, 1));
-    disp(size(croppedVolume, 2));
-    disp(size(croppedVolume, 3));
 
     new_center = floor(size(croppedVolume, 3)/2);
     
-    new_extract = croppedVolume(:,:,new_center,1);
+    new_extract = croppedVolume(:,:,new_center);
 
     finalimg = squeeze(new_extract);
 
