@@ -263,11 +263,11 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     % The depth of the volume will depend on the selected dimension
     switch dimension
         case 'W'
-            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 1), time);
+            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 1));
         case 'H'
-            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 2), time);
+            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 2));
         case 'D'
-            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 3), time);
+            croppedVolume = zeros(newCropHeight, newCropWidth, size(vol_transfull_rotated, 3));
     end
 
 
