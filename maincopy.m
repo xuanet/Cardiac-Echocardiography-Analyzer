@@ -6,15 +6,16 @@ close all;
 
 heart = resampleDicom('05.dcm');
 
+% We need to see how much real distance each pixel represents. Luckily, it
+% 1 pixel represent the same distance in each direction
+cmPerPixel = heart.depthspan/heart.depth;
+
 time = 1;
-
-
-% disp(size(heart))
 
 
 % Reorient the ventricle with respct to the anatomy of interest (i.e., the
 % long axis
-[outputVolume, selectedDimension] = ReorientVentricle(heart, time);
+outputVolume = ReorientVentricleCopy(heart, time);
+numSlice = 6;
 
-
-findVolume(outputVolume, 4, selectedDimension);
+volume = findVolume(outputVolume,numSlice,cmPerPixel);
