@@ -24,7 +24,6 @@ function v = putSlicesInArray(heart, numSlice, selectedDimension)
             currentSlice = currentHeart(centerW,:,:);
             currentSlice = squeeze(currentSlice);
             currentSlice = currentSlice';
-            disp(size(currentSlice))
             widthSlices(:,:,i) = currentSlice;
             currentHeart = imrotate3(heart, angle*i, rvec, "linear", "crop");
         end
@@ -50,7 +49,6 @@ function v = putSlicesInArray(heart, numSlice, selectedDimension)
             currentSlice = currentHeart(:,centerH,:);
             currentSlice = squeeze(currentSlice);
             currentSlice = currentSlice';
-            disp(size(currentSlice))
             heightSlices(:,:,i) = currentSlice;
             currentHeart = imrotate3(heart, angle*i, rvec, "linear", "crop");
         end
