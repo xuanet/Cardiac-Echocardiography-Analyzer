@@ -10,7 +10,7 @@ heart = resampleDicom('05.dcm');
 % 1 pixel represent the same distance in each direction
 cmPerPixel = heart.depthspan/heart.depth;
 
-time = 1;
+time = 5;
 
 
 % Reorient the ventricle with respct to the anatomy of interest (i.e., the
