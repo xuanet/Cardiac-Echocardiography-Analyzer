@@ -1,5 +1,5 @@
 
-function [volume, sectorVolumes] = findVolume(heart, numSlice, cmPerPixel)
+function volume = findVolume(heart, numSlice, cmPerPixel, )
 
     widthSlices = putSlicesInArray(heart, numSlice);
     sectorVolumes = zeros(numSlice, 1);
@@ -62,65 +62,87 @@ function [volume, sectorVolumes] = findVolume(heart, numSlice, cmPerPixel)
             % sector prisms. Make sure each sector is multiplied by
             % cmPerPixel as that is the thickness of a sector
             
-            SV = sectorVolume(radiusLeft, radiusRight, cmPerPixel);
+            SV = sectorVolume(radiusLeft, radiusRight, cmPerPixel, numSlice);
+
+            % Put each sector volume in sectorVolumes, the units should be
+            % cc
             sectorVolumes(i) = SV;
         end
         pause(1);
     end
-    volume = sum(sectorVolumes)*pi*cmPerPixel/numSlice;
+
+    % Finally, sum up the volume of each sector prism
+    volume = sum(sectorVolumes);
 end    
 
-function sv = sectorVolume(left, right, cmPerPixel)
-    % Each small sector volume is (sector radius)^2*pi. The final answer is
-    % divided 
+function sv = sectorVolume(left, right, cmPerPixel, numSlice)
+    % Each small sector volume (pretend it spans the entire circle)* is (sector radius)^2*pi. *The final answer is
+    % divided by the number of slices
     sumLeft = 0;
     sumRight = 0;
     for i = 1:length(left)
-        sumLeft = sumLeft + (left(i)*cmPerPixel)^2;
-        sumRight = sumRight + (right(i)*cmPerPixel)^2;
+        sumLeft = sumLeft + pi*left(i)^2*cmPerPixel;
+        sumRight = sumRight + pi*right(i)^2*cmPerPixel;
     end
-    sv = sumLeft+sumRight;
+    sv = (sumLeft+sumRight)/(2*numSlice);
 end
 
-function widthSlices = putSlicesInArray(heart, numSlice)
+function v = putSlicesInArray(heart, numSlice)
 
     currentHeart = heart;
-
     % heart is 3D image with long axis aligned
     % numSlices is how many long axis slices used for volume calculation
+    if selectedDimension == 'W'
+            
+        % Get size of heart:
+        [w, h, d] = size(heart);
+        centerW = floor(w/2);
+    
+    
+        % Calculating rotation angle
+        angle = 180/numSlice;
+    
+        % Creating array to store long axis slices
+        widthSlices = zeros(d, h, numSlice);
+    
+        % Assigning middle index of width
+        rvec = [0 0 1];
+    
+        % Adding slices to widthSlices
+        for i = 1:numSlice
+            currentSlice = currentHeart(centerW,:,:);
+            currentSlice = squeeze(currentSlice);
+            currentSlice = currentSlice';
+            disp(size(currentSlice))
+            widthSlices(:,:,i) = currentSlice;
+            currentHeart = imrotate3(heart, angle*i, rvec, "linear", "crop");
+        end
+        v = widthSlices;
 
-    % Get size of heart:
-    [m, n, p] = size(heart);
-    centerW = round(m/2);
-
-    % Calculating rotation angle
-    angle = 180/numSlice;
-
-    % Creating array to store long axis slices
-    % Consider a long axis slice, p is the image width, n is the image
-    % length
-
-    widthSlices = zeros(p, n, numSlice);
-
-    % Assigning middle index of width
-
-    rvecDepth = [0 0 1];
-
-    % Adding slices to widthSlices
-    for i = 1:numSlice
-        currentSlice = currentHeart(centerW,:,:);
-
-        currentSlice = squeeze(currentSlice);
-
-        % Transposing to get correct orientation
-        currentSlice = currentSlice';
+    elseif selectedDimension == 'H'
         
-        % Adding slice to the array
-        widthSlices(:,:,i) = currentSlice;
-
-        % Rotate heart by angle to get next slice
-        currentHeart = imrotate3(heart, angle*i, rvecDepth, "linear", "crop");
+        % Get size of heart:
+        [w, h, d] = size(heart);
+        centerH = floor(h/2);
+        
+        % Calculating rotation angle
+        angle = 180/numSlice;
+    
+        % Creating array to store long axis slices
+        heightSlices = zeros(d, w, numSlice);
+    
+        % Assigning middle index of height
+        rvec = [0 0 1];
+        
+        % Adding slices to widthSlices
+        for i = 1:numSlice
+            currentSlice = currentHeart(:,centerH,:);
+            currentSlice = squeeze(currentSlice);
+            currentSlice = currentSlice';
+            disp(size(currentSlice))
+            heightSlices(:,:,i) = currentSlice;
+            currentHeart = imrotate3(heart, angle*i, rvec, "linear", "crop");
+        end
+        v = heightSlices;
     end 
 end
-
-

@@ -1,7 +1,7 @@
 
-function volume = findVolume(heart, numSlice, cmPerPixel)
+function volume = findVolume(heart, numSlice, cmPerPixel, selectedDimension)
 
-    widthSlices = putSlicesInArray(heart, numSlice);
+    widthSlices = putSlicesInArray(heart, numSlice, selectedDimension);
     sectorVolumes = zeros(numSlice, 1);
 
     for i = 1:numSlice
@@ -74,58 +74,3 @@ function volume = findVolume(heart, numSlice, cmPerPixel)
     % Finally, sum up the volume of each sector prism
     volume = sum(sectorVolumes);
 end    
-
-function sv = sectorVolume(left, right, cmPerPixel, numSlice)
-    % Each small sector volume (pretend it spans the entire circle)* is (sector radius)^2*pi. *The final answer is
-    % divided by the number of slices
-    sumLeft = 0;
-    sumRight = 0;
-    for i = 1:length(left)
-        sumLeft = sumLeft + pi*left(i)^2*cmPerPixel;
-        sumRight = sumRight + pi*right(i)^2*cmPerPixel;
-    end
-    sv = (sumLeft+sumRight)/(2*numSlice);
-end
-
-function widthSlices = putSlicesInArray(heart, numSlice)
-
-    currentHeart = heart;
-
-    % heart is 3D image with long axis aligned
-    % numSlices is how many long axis slices used for volume calculation
-
-    % Get size of heart:
-    [m, n, p] = size(heart);
-    centerW = round(m/2);
-
-    % Calculating rotation angle
-    angle = 180/numSlice;
-
-    % Creating array to store long axis slices
-    % Consider a long axis slice, p is the image width, n is the image
-    % length
-
-    widthSlices = zeros(p, n, numSlice);
-
-    % Assigning middle index of width
-
-    rvecDepth = [0 0 1];
-
-    % Adding slices to widthSlices
-    for i = 1:numSlice
-        currentSlice = currentHeart(centerW,:,:);
-
-        currentSlice = squeeze(currentSlice);
-
-        % Transposing to get correct orientation
-        currentSlice = currentSlice';
-        
-        % Adding slice to the array
-        widthSlices(:,:,i) = currentSlice;
-
-        % Rotate heart by angle to get next slice
-        currentHeart = imrotate3(heart, angle*i, rvecDepth, "linear", "crop");
-    end 
-end
-
-

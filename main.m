@@ -5,13 +5,12 @@ clear variables;
 close all;
 
 heart = resampleDicom('05.dcm');
-
 time = 1;
 
 % Reorient the ventricle with respct to the anatomy of interest (i.e., the
 % long axis
-outputVolume = ReorientVentricle(heart, time);
+[outputVolume, selectedDimension] = ReorientVentricle(heart, time);
 
+v = findVolume(outputVolume, 4, heart.depthspan/heart.depth, selectedDimension);
 
-
-volume = findVolume(outputVolume,4);
+disp(v)
