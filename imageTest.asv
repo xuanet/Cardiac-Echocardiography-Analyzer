@@ -1,0 +1,48 @@
+clc
+clear variables
+close all
+
+currentVersion = "10/27/23";
+
+
+heart = resampleDicom('05.dcm');
+
+% centerH = floor(heart.height/2);
+% centerW = floor(heart.width/2);
+% centerD = floor(heart.depth/2);
+% 
+% extractW = heart.data(centerW,:,:,1);
+% extractH = heart.data(:,centerH,:,1);
+% extractD = heart.data(:,:,centerD,1);
+
+% widthSlice(heart, 50, 200);
+
+
+extractW = heart.data(150,:,:,1);
+imgW = squeeze(extractW);
+imshow(imgW',[])
+
+
+% Create a binary mask from the drawn freehand region
+freehandROI = drawfreehand('Closed', true);
+[x,y]=ginput(2);
+
+col = round(x(1));
+topRow = round(y(1));
+botRow = round(y(2));
+
+radiusLeft = zeros(botRow-topRow);
+radiusRight = zeros(botRow-topRow);
+
+for row = topRow:botRow
+    arra
+    leftArray = binaryMask(row,:)
+    
+end
+
+
+% Create a binary mask from the drawn region
+binaryMask = createMask(freehandROI);
+
+
+
