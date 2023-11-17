@@ -1,13 +1,13 @@
 
 function volume = findVolume(heart, numSlice, cmPerPixel, selectedDimension)
 
-    widthSlices = putSlicesInArray(heart, numSlice, selectedDimension);
+    Slices = putSlicesInArray(heart, numSlice, selectedDimension);
     sectorVolumes = zeros(numSlice, 1);
 
     for i = 1:numSlice
         
-        currentSlice = widthSlices(:,:,i);
-        figure(2)
+        currentSlice = Slices(:,:,i);
+        figure(3)
         imshow(currentSlice, []);
         title(num2str(i));
 

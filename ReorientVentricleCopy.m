@@ -1,4 +1,4 @@
-function [outputVolume, selectedDimension] = ReorientVentricle(heart, time)
+function [outputVolume, selectedDimension] = ReorientVentricleCopy(heart, time)
     
     
     % Created by Jose on 10/26/23
@@ -7,7 +7,8 @@ function [outputVolume, selectedDimension] = ReorientVentricle(heart, time)
     % Updated by Jose on 10/30/23
     % Updated by Jose on 10/31/23
     % Updated by Jose on 11/7/23
-    % Final Update by Jose on 11/12/23
+    % Updated by Jose on 11/12/23
+    % Updated by Jose on 11/17/23
 
     currentVersion = "10/26/23";
 
@@ -57,6 +58,66 @@ function [outputVolume, selectedDimension] = ReorientVentricle(heart, time)
     line([1 w], [centerH centerH],'Color','red','LineWidth',2)
     addborder(1, h, w, 1, 'green');
     
+
+    
+
+    % Determine the slice positions
+    topDepth = floor(size(heart.data, 3) / 4); % Quarter of the way from the top of depth
+    bottomDepth = floor(size(heart.data, 3) / 2); % Third of the way through the depth
+    
+    % Extract the top quarter depth slice
+    topSlice = squeeze(heart.data(:,:,topDepth,time));
+    % Extract the bottom quarter depth slice
+    bottomSlice = squeeze(heart.data(:,:,bottomDepth,time)); 
+    
+    % Collect user input on both slices
+    figure(2);
+    subplot(2, 1, 1);
+    imshow(topSlice', []);
+    title('Top Depth Slice');
+    [xTop, yTop] = ginput(1);
+    
+    subplot(2, 1, 2);
+    imshow(bottomSlice', []);
+    title('Bottom Depth Slice');
+    [xBottom, yBottom] = ginput(1);
+
+
+    
+    % Convert the 2D points to 3D coordinates
+    zTop = topDepth;
+    zBottom = bottomDepth;
+    
+    % Calculate the direction vector (line between the two points in 3D space)
+    directionVector = [xBottom - xTop, yBottom - yTop, zBottom - zTop];
+    
+    % Define a reference axis (e.g., vertical axis)
+    referenceAxis = [0, 0, 1]; % Vertical axis
+    
+    % Calculate the rotation angle between the direction vector and the reference axis
+    % Normalize the vectors
+    normalizedDirectionVector = directionVector / norm(directionVector);
+    normalizedReferenceAxis = referenceAxis / norm(referenceAxis);
+    
+    % Compute the angle
+    cosTheta = dot(normalizedDirectionVector, normalizedReferenceAxis);
+    angleRad = acos(cosTheta);
+    rotationAngleDeg = rad2deg(angleRad);
+    
+    % Perform the rotation
+    FinaloutputVolume = imrotate3(heart.data(:,:,:), rotationAngleDeg, directionVector, 'linear', 'crop');
+
+    final_center = floor(size(FinaloutputVolume, 2)/2);
+    final_extract = FinaloutputVolume(:,final_center,:);
+    
+    % Display final image on figure 1
+    finalimg = squeeze(final_extract);
+    figure(1)
+    imshow(finalimg', []);
+    title('Reoriented With Respect to Depth'); 
+    
+
+
     
     [x, y] = ginput(2);
     
@@ -127,7 +188,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     end
     
     % Compute the translated volume
-    vol_transfull = imtranslate(heart.data(:,:,:,time), [d_W d_H d_D], 'OutputView', 'full', 'FillValues', 128);
+    vol_transfull = imtranslate(FinaloutputVolume, [d_W d_H d_D], 'OutputView', 'full', 'FillValues', 128);
     
     % Extract the relevant slice based on the selected dimension
     switch dimension
@@ -345,66 +406,6 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     title(semifinaltitle); % Set the final title
     
 
-    % Determine the slice positions
-    topDepth = floor(size(SemiFinalcroppedVolume, 3) / 5); % Quarter of the way from the top of depth
-    bottomDepth = floor(size(SemiFinalcroppedVolume, 3) / 2.6); % Third of the way through the depth
-    
-    % Extract the top quarter depth slice
-    topSlice = squeeze(SemiFinalcroppedVolume(:,:,topDepth,time));
-    % Extract the bottom quarter depth slice
-    bottomSlice = squeeze(SemiFinalcroppedVolume(:,:,bottomDepth,time)); 
-    
-    % Collect user input on both slices
-    figure(2);
-    subplot(2, 1, 1);
-    imshow(topSlice', []);
-    title('Top Depth Slice');
-    [xTop, yTop] = ginput(1);
-    
-    subplot(2, 1, 2);
-    imshow(bottomSlice', []);
-    title('Bottom Depth Slice');
-    [xBottom, yBottom] = ginput(1);
-    
-    % Convert the 2D points to 3D coordinates
-    zTop = topDepth;
-    zBottom = bottomDepth;
-    
-    % Calculate the direction vector (line between the two points in 3D space)
-    directionVector = [xBottom - xTop, yBottom - yTop, zBottom - zTop];
-    
-    % Define a reference axis (e.g., vertical axis)
-    referenceAxis = [0, 0, 1]; % Vertical axis
-    
-    % Calculate the rotation angle between the direction vector and the reference axis
-    % Normalize the vectors
-    normalizedDirectionVector = directionVector / norm(directionVector);
-    normalizedReferenceAxis = referenceAxis / norm(referenceAxis);
-    
-    % Compute the angle
-    cosTheta = dot(normalizedDirectionVector, normalizedReferenceAxis);
-    angleRad = acos(cosTheta);
-    rotationAngleDeg = rad2deg(angleRad);
-    
-    % Perform the rotation
-    FinaloutputVolume = imrotate3(SemiFinalcroppedVolume, rotationAngleDeg, directionVector, 'linear', 'crop', 'FillValues', 100);
-
-    switch dimension
-        case 'W'
-            final_center = floor(size(FinaloutputVolume, 1)/2);
-            final_extract = FinaloutputVolume(final_center,:,:);
-    
-        case 'H'
-            final_center = floor(size(FinaloutputVolume, 2)/2);
-            final_extract = FinaloutputVolume(:,final_center,:);
-    end
-    
-    % Display final image on figure 1
-    finalimg = squeeze(final_extract);
-    figure(1)
-    imshow(finalimg', []);
-    title(finaltitle); 
-
-    outputVolume = FinaloutputVolume; 
+    outputVolume = SemiFinaloutputVolume; 
     selectedDimension = dimension;
 end 
