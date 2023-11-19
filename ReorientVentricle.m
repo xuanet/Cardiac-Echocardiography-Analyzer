@@ -337,7 +337,7 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
             new_center = floor(size(SemiFinalcroppedVolume, 2)/2);
             new_extract = SemiFinalcroppedVolume(:,new_center,:);
     end
-
+    
     semifinalimg = squeeze(new_extract);
 
     figure(1)
@@ -350,9 +350,9 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     bottomDepth = floor(size(SemiFinalcroppedVolume, 3) / 2.6); % Third of the way through the depth
     
     % Extract the top quarter depth slice
-    topSlice = squeeze(SemiFinalcroppedVolume(:,:,topDepth,time));
+    topSlice = squeeze(SemiFinalcroppedVolume(:,:,topDepth));
     % Extract the bottom quarter depth slice
-    bottomSlice = squeeze(SemiFinalcroppedVolume(:,:,bottomDepth,time)); 
+    bottomSlice = squeeze(SemiFinalcroppedVolume(:,:,bottomDepth)); 
     
     % Collect user input on both slices
     figure(2);
@@ -370,24 +370,24 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     zTop = topDepth;
     zBottom = bottomDepth;
     
-    % Calculate the direction vector (line between the two points in 3D space)
-    directionVector = [xBottom - xTop, yBottom - yTop, zBottom - zTop];
-    
-    % Define a reference axis (e.g., vertical axis)
-    referenceAxis = [0, 0, 1]; % Vertical axis
-    
-    % Calculate the rotation angle between the direction vector and the reference axis
-    % Normalize the vectors
-    normalizedDirectionVector = directionVector / norm(directionVector);
-    normalizedReferenceAxis = referenceAxis / norm(referenceAxis);
-    
-    % Compute the angle
-    cosTheta = dot(normalizedDirectionVector, normalizedReferenceAxis);
-    angleRad = acos(cosTheta);
-    rotationAngleDeg = rad2deg(angleRad);
+    switch dimension
+        case 'W'
+            Secondrvec = [-1, 0, 0];
+            SecondAngle = atan((abs(xTop-xBottom))/(zTop-zBottom)); 
+            SecondAngleDeg = rad2deg(SecondAngle);
+            %Secondccwangle = 90 - SecondAngleDeg;
+            Secondccwangle = SecondAngleDeg;
+            
+        case 'H'
+            Secondrvec = [0, -1, 0];
+            SecondAngle = atan((abs(xTop-xBottom))/(zTop-zBottom)); 
+            SecondAngleDeg = rad2deg(SecondAngle);
+            %Secondccwangle = 90 - SecondAngleDeg;
+            Secondccwangle = SecondAngleDeg;
+    end
     
     % Perform the rotation
-    FinaloutputVolume = imrotate3(SemiFinalcroppedVolume, rotationAngleDeg, directionVector, 'linear', 'crop', 'FillValues', 100);
+    FinaloutputVolume = imrotate3(SemiFinalcroppedVolume, Secondccwangle, Secondrvec, 'linear', 'crop', 'FillValues', 100);
 
     switch dimension
         case 'W'
