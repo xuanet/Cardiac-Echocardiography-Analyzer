@@ -157,8 +157,8 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     
     
     % Calculate the angle with the vertical axis
-    deltaY = y(2) - y(1);
-    deltaX = x(1) - x(2);
+    deltaY = abs(y(2) - y(1));
+    deltaX = abs(x(1) - x(2));
     angle = atan(deltaY/deltaX); 
     angleDeg = rad2deg(angle);
     ccwangle = 90 - angleDeg;
@@ -372,15 +372,15 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     
     switch dimension
         case 'W'
-            Secondrvec = [-1, 0, 0];
-            SecondAngle = atan((abs(xTop-xBottom))/(zTop-zBottom)); 
+            Secondrvec = [1, 0, 0];
+            SecondAngle = atan((abs(xTop-xBottom))/(abs(zTop-zBottom))); 
             SecondAngleDeg = rad2deg(SecondAngle);
             %Secondccwangle = 90 - SecondAngleDeg;
             Secondccwangle = SecondAngleDeg;
             
         case 'H'
             Secondrvec = [0, -1, 0];
-            SecondAngle = atan((abs(xTop-xBottom))/(zTop-zBottom)); 
+            SecondAngle = atan((abs(yTop-yBottom))/(abs(zTop-zBottom))); 
             SecondAngleDeg = rad2deg(SecondAngle);
             %Secondccwangle = 90 - SecondAngleDeg;
             Secondccwangle = SecondAngleDeg;

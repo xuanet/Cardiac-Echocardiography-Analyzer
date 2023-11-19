@@ -4,8 +4,8 @@ clc;
 clear variables;
 close all;
 
-heart = resampleDicom('05.dcm');
-time = 1;
+heart = resampleDicom('002A.dcm');
+time = 25;
 
 % Reorient the ventricle with respct to the anatomy of interest (i.e., the
 % long axis
