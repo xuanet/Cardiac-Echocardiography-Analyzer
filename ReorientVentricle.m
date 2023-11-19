@@ -375,14 +375,12 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
             Secondrvec = [1, 0, 0];
             SecondAngle = atan((abs(xTop-xBottom))/(abs(zTop-zBottom))); 
             SecondAngleDeg = rad2deg(SecondAngle);
-            %Secondccwangle = 90 - SecondAngleDeg;
             Secondccwangle = SecondAngleDeg;
             
         case 'H'
             Secondrvec = [0, -1, 0];
             SecondAngle = atan((abs(yTop-yBottom))/(abs(zTop-zBottom))); 
             SecondAngleDeg = rad2deg(SecondAngle);
-            %Secondccwangle = 90 - SecondAngleDeg;
             Secondccwangle = SecondAngleDeg;
     end
     
