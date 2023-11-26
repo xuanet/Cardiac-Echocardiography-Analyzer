@@ -5,7 +5,12 @@ clear variables;
 close all;
 
 heart = resampleDicom('002A.dcm');
-time = 25;
+time = 1;
+
+
+a = AorticAreaCopy(heart, time);
+
+disp(a)
 
 % Reorient the ventricle with respct to the anatomy of interest (i.e., the
 % long axis
