@@ -12,7 +12,7 @@ fig = figure;
 totalArea = 0;
 
 %Select depth slice
-currentDepth=42;
+currentDepth=150;
 
     for frame = 1:numTimeFrames
         extractD = heart.data(:, :, currentDepth, frame);
