@@ -4,12 +4,18 @@ clc;
 clear variables;
 close all;
 
-% Call the ReorientVentricle function
-[outputImage, selectedDimension] = ReorientVentricle();
+heart = resampleDicom('002A.dcm');
+time = 1;
 
-if ~isempty(outputImage)
-    % Call the drawEndocardialBoundary function to draw the endocardial boundary
-    drawEndocardialBoundary(outputImage, selectedDimension);
-else
-    disp('ReorientVentricle function did not return an image.');
-end
+
+a = AorticAreaCopy(heart, time);
+
+disp(a)
+
+% Reorient the ventricle with respct to the anatomy of interest (i.e., the
+% long axis
+[outputVolume, selectedDimension] = Reorient(heart, time);
+
+v = findVolume(outputVolume, 4, heart.depthspan/heart.depth, selectedDimension);
+
+disp(v)

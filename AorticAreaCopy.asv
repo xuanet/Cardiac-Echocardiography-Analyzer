@@ -5,7 +5,7 @@ function area = AorticAreaCopy(heart, time)
     valveCenters = []; % Initialize an array to store the centers
     pointsSelected = 0; % Counter for the number of points selected
     
-    for frame = 165:190
+    for frame = 140:190
         if pointsSelected >= 2 % Break the loop if two points have already been selected
             break;
         end
@@ -79,7 +79,7 @@ function area = AorticAreaCopy(heart, time)
         error('Not enough points selected for rotation.');
     end
 
-    hFH = drawfreehand('Closed', true);
+    hFH = drawfreehand;
 
     % Get the binary mask of the drawn region
     if exist('hFH', 'var')
@@ -93,15 +93,12 @@ function area = AorticAreaCopy(heart, time)
     pixelSpacingD = heart.depthspan / heart.depth_padded;
     pixelSpacingW = heart.widthspan / heart.width_padded;
 
-
     % Since we're working with a 2D slice, choose appropriate pixel spacing
     pixelSpacing = [pixelSpacingW, pixelSpacingH];
         
     % Calculate the area
     areaInPixels = sum(binaryMask(:));
     areaInUnits = areaInPixels * prod(pixelSpacing);
-
-    disp(binaryMask)
 
     area = areaInUnits;
 end
