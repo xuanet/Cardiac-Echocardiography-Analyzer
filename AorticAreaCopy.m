@@ -5,7 +5,7 @@ function area = AorticAreaCopy(heart, time)
     valveCenters = []; % Initialize an array to store the centers
     pointsSelected = 0; % Counter for the number of points selected
     
-    for frame = 165:190
+    for frame = 50:210
         if pointsSelected >= 2 % Break the loop if two points have already been selected
             break;
         end

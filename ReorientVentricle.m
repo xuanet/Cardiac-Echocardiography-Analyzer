@@ -372,16 +372,44 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     
     switch dimension
         case 'W'
-            Secondrvec = [1, 0, 0];
-            SecondAngle = atan((abs(xTop-xBottom))/(abs(zTop-zBottom))); 
-            SecondAngleDeg = rad2deg(SecondAngle);
-            Secondccwangle = SecondAngleDeg;
+             % Define the vectors
+            lineVector = [xBottom - xTop, yBottom - yTop, zBottom - zTop]; % Vector of the line connecting the two points
+            verticalVector = [0, 0, 1]; % Vector representing the vertical line
+    
+            % Normalize the vectors
+            lineVectorNorm = lineVector / norm(lineVector);
+            verticalVectorNorm = verticalVector / norm(verticalVector);
+    
+            % Calculate the angle using the dot product
+            dotProd = dot(lineVectorNorm, verticalVectorNorm);
+            angleRad = acos(dotProd); % Angle in radians
+            Secondccwangle = rad2deg(angleRad); % Convert angle to degrees
+    
+            % Calculating rvec
+            matrix = [yBottom - yTop, zBottom - zTop; 0, 1];
+            p = inv(matrix)*[xTop - xBottom; 0];
+    
+            Secondrvec = [1 p(1) p(2)];
             
         case 'H'
-            Secondrvec = [0, -1, 0];
-            SecondAngle = atan((abs(yTop-yBottom))/(abs(zTop-zBottom))); 
-            SecondAngleDeg = rad2deg(SecondAngle);
-            Secondccwangle = SecondAngleDeg;
+            % Define the vectors
+            lineVector = [xBottom - xTop, yBottom - yTop, zBottom - zTop]; % Vector of the line connecting the two points
+            verticalVector = [0, 0, 1]; % Vector representing the vertical line
+    
+            % Normalize the vectors
+            lineVectorNorm = lineVector / norm(lineVector);
+            verticalVectorNorm = verticalVector / norm(verticalVector);
+    
+            % Calculate the angle using the dot product
+            dotProd = dot(lineVectorNorm, verticalVectorNorm);
+            angleRad = acos(dotProd); % Angle in radians
+            Secondccwangle = rad2deg(angleRad); % Convert angle to degrees
+    
+            % Calculating rvec
+            matrix = [yBottom - yTop, zBottom - zTop; 0, 1];
+            p = inv(matrix)*[xTop - xBottom; 0];
+    
+            Secondrvec = [1 p(1) p(2)];
     end
     
     % Perform the rotation

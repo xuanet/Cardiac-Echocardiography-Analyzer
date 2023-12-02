@@ -4,8 +4,8 @@ clc;
 clear variables;
 close all;
 
-heart = resampleDicom('002A.dcm');
-time = 1;
+heart = resampleDicom('05.dcm');
+time = 5;
 
 
 a = AorticAreaCopy(heart, time);
