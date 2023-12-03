@@ -1,7 +1,6 @@
+function volume = findVolume(data, numSlice, cmPerPixel, selectedDimension)
 
-function volume = findVolume(heart, numSlice, cmPerPixel, selectedDimension)
-
-    Slices = putSlicesInArray(heart, numSlice, selectedDimension);
+    Slices = putSlicesInArray(data, numSlice, selectedDimension);
     sectorVolumes = zeros(numSlice, 1);
 
     for i = 1:numSlice
@@ -72,5 +71,8 @@ function volume = findVolume(heart, numSlice, cmPerPixel, selectedDimension)
     end
 
     % Finally, sum up the volume of each sector prism
+
     volume = sum(sectorVolumes);
+    dispVolume = ['Volume obtained: ', num2str(volume), ' cm^2'];
+    disp(dispVolume);
 end    

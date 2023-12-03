@@ -1,4 +1,4 @@
-function [outputVolume, selectedDimension] = ReorientVentricle(heart, time)
+function [outputVolume, selectedDimension] = ReorientVentricle(data, cmPerPixel)
     
     
     % Created by Jose on 10/26/23
@@ -9,30 +9,28 @@ function [outputVolume, selectedDimension] = ReorientVentricle(heart, time)
     % Updated by Jose on 11/7/23
     % Final Update by Jose on 11/12/23
 
-    currentVersion = "10/26/23";
+    currentVersion = "12/3/24";
 
-    centerH = floor(heart.height/2);
-    centerW = floor(heart.width/2);
-    centerD = floor(heart.depth/2);
+    % Obtain center slices of each dimension
+
+    [w, h, d] = size(data);
+
+    centerW = floor(w/2);
+    centerH = floor(h/2);
+    centerD = floor(d/2);
     
-    extractW = heart.data(centerW,:,:,time);
-    extractH = heart.data(:,centerH,:,time);
-    extractD = heart.data(:,:,centerD,time);
+    extractW = data(centerW,:,:);
+    extractH = data(:,centerH,:);
+    extractD = data(:,:,centerD);
 
     imgW = squeeze(extractW);
     imgH = squeeze(extractH);
     imgD = squeeze(extractD); 
-    
-    d = floor(heart.depth);
-    w = floor(heart.width);
-    h = floor(heart.height);
 
-    widthdistance = heart.widthspan; %cm
-    heightdistance = heart.heightspan; %cm
-    depthdistance = heart.depthspan; %cm
+    % Displaying center slices of each dimension
     
     figure(1);
-    % width
+    % Width
     sp2_1 = subplot(2, 2, 1);
     imshow(imgW', []);
     title('Width');
@@ -40,7 +38,7 @@ function [outputVolume, selectedDimension] = ReorientVentricle(heart, time)
     line([1 h], [centerD centerD],'Color','green','LineWidth',2)
     addborder(1, d, h, 1, 'blue');
     
-    % height
+    % Height
     sp2_2 = subplot(2, 2, 2);
     imshow(imgH', []);
     title('Height');
@@ -48,8 +46,7 @@ function [outputVolume, selectedDimension] = ReorientVentricle(heart, time)
     line([1 w], [centerD centerD],'Color','green','LineWidth',2)
     addborder(1, d, w, 1, 'red');
     
-    
-    % depth
+    % Depth, probably not using
     sp2_3 = subplot(2, 2, 3);
     imshow(imgD', []);
     title('Depth');
@@ -58,6 +55,9 @@ function [outputVolume, selectedDimension] = ReorientVentricle(heart, time)
     addborder(1, h, w, 1, 'green');
     
     
+    % Draw vector from apex to mitral valve
+    disp('Draw vector from apex to mitral valve')
+
     [x, y] = ginput(2);
     
     % Identify the subplot user clicked on
@@ -73,38 +73,26 @@ function [outputVolume, selectedDimension] = ReorientVentricle(heart, time)
     else
         error('Unexpected axes handle.');
     end
+
+    fprintf('Dimension: %s\n', dimension);
     
     linemaker(x(1), y(1), x(2), y(2));
-    
     midpoint = midptofline(x(1), y(1), x(2), y(2));
     lengthofline = distanceinpixels(x(1), y(1), x(2), y(2));
 
-
-    % Calculate pixels per centimeter ratio
-    switch dimension
-        case 'W'
-            pixelsPerCm = w / widthdistance;
-        case 'H'
-            pixelsPerCm = h / heightdistance;
-        case 'D'
-            pixelsPerCm = d / depthdistance;
-        otherwise
-            error('Unexpected dimension.');
-    end
-
     % Calculate the length of the line in centimeters
-    lengthOfLineCm = lengthofline / pixelsPerCm;
+    lengthOfLineCm = lengthofline * cmPerPixel;
 
-% Display the length of the line in centimeters
-fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
+    % Display the length of the line in centimeters
+    fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     
+
+    % Drawing a circle at the midpoint of vector for translation parameters
     centerX = midpoint(1);
     centerY = midpoint(2);
     radiusofcircle = lengthofline/8;
     circlemakerforlines(centerX, centerY, radiusofcircle);
 
-
-    
     % Default translations
     d_D = 0;
     d_H = 0;
@@ -113,21 +101,21 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     % Compute translations based on selected dimension
     switch dimension
         case 'W'
-            d_D = 2 * (heart.depth/2 - centerY);
-            d_W = 2 * (heart.width/2 - centerX);
+            d_D = 2 * (d/2 - centerY);
+            d_W = 2 * (w/2 - centerX);
             d_H = 0;
         case 'H'
-            d_D = 2 * (heart.depth/2 - centerY); 
-            d_H = 2 * (heart.width/2 - centerX); 
+            d_D = 2 * (d/2 - centerY); 
+            d_H = 2 * (w/2 - centerX); 
             d_W = 0; 
         case 'D'
-            d_H = 2 * (heart.depth/2 - centerY);
-            d_W = 2 * (heart.width/2 - centerX);
+            d_H = 2 * (d/2 - centerY);
+            d_W = 2 * (w/2 - centerX);
             d_D = 0; 
     end
     
     % Compute the translated volume
-    vol_transfull = imtranslate(heart.data(:,:,:,time), [d_W d_H d_D], 'OutputView', 'full', 'FillValues', 128);
+    vol_transfull = imtranslate(data, [d_W d_H d_D], 'OutputView', 'full', 'FillValues', 128);
     
     % Extract the relevant slice based on the selected dimension
     switch dimension
@@ -154,16 +142,14 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     circlemakerforlines(newcenter_x, newcenter_y, radiusofcircle);
     
     
-    
-    
-    % Calculate the angle with the vertical axis
+    % Calculate the rotation angle with respect to the vertical axis
     deltaY = abs(y(2) - y(1));
     deltaX = abs(x(1) - x(2));
     angle = atan(deltaY/deltaX); 
     angleDeg = rad2deg(angle);
     ccwangle = 90 - angleDeg;
     
-    % setting the rotation vector
+    % Setting the rotation vector
     rvecWidth = [0 -1 0];
     rvecHeight = [1 0 0];
     rvecDepth = [0 0 -1];
@@ -181,7 +167,6 @@ fprintf('Distance from base to apex is %.2f cm.\n', lengthOfLineCm);
     
     
     vol_transfull_rotated = imrotate3(vol_transfull, ccwangle, rvec, 'FillValues', 100);
-    
     
     % Extract the relevant slice based on the selected dimension
     switch dimension

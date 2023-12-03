@@ -1,4 +1,12 @@
 function area = AorticAreaCopy(heart, time)
+
+    screen = get(0, 'screensize');
+    screenWidth = screen(3);
+    screenHeight = screen(4);
+    figDimension = floor(min(screenWidth, screenHeight)/1.5);
+    xpos = floor((screenWidth-figDimension)/2);
+    ypos = floor((screenHeight-figDimension)/2);
+    set(groot, 'defaultFigureUnits', 'pixels', 'defaultFigurePosition', [xpos ypos figDimension figDimension]);
     
     data = heart.data(:,:,:,time);
     
