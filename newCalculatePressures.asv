@@ -1,0 +1,20 @@
+function pa = newCalculatePressures(volumeArr, aorticArea, frameRate, majorAxis, minorAxis, density)
+    if nargin < 6
+        error('Not enough input arguments.');
+    end
+
+    deltaT = 1/frameRate;
+    LVSurfaceArea = ellipsoidSA(majorAxis, minorAxis);
+
+    numPressures = numel(volumeArr)-1;
+    pa = zeros(1, numPressures);
+
+    % Iterating through volumeArr
+
+    for i = 2:numel(volumeArr)
+        % Find volume of blood pumped into aorta
+        vAorta = volumeArr(i-1)-volumeArr(i);
+        pa(i-1) = (vAorta^2*density)/(aorticArea*LVSurfaceArea*(deltaT^2));
+    end
+
+end
