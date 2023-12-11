@@ -1,66 +1,164 @@
 import numpy as np
+import scipy.integrate as sp
 import matplotlib.pyplot as plt
-import pandas as pd
+import csv
 
-file_path = "543 qlab volumes.xlsx"
-df = pd.read_excel(file_path, sheet_name="p021")
-fps = 32
+def createVolumeArr(filePath):
+    columnIndex = 1
+    with open(filePath, 'r') as file:
+        reader = csv.reader(file)
+        volumes = [row[columnIndex] for row in reader]
+
+    # Processing
+
+    volumes.pop(0)
+    volumes = [int(x) for x in volumes]
+
+    # Only want decreasing values
+
+    index = len(volumes)//4
+    for i in range(len(volumes)//4, len(volumes)-1):
+        if volumes[i+1]>volumes[i]:
+            break
+        index += 1
+    return volumes[:index+1]    
+
+
+filePath = "21.csv"
+volumes = createVolumeArr(filePath)
+
+fps = int(input("FPS?"))
+area=int(input("aortic area?"))
+method = int(input("method? 1 = olaf, 0 = ours"))
+dt = 1/fps
 density = 1.04
-area=4
-deg_fit=7
-EDP=0
-# Access the two columns by their names
-frame = df['Frame']
-frame = np.array(frame) / fps
-frame = frame[:9]
-volumes = df['Volume(mL)']
-volumes = np.array(volumes)[:9]
+deg=5
+EDP=80
 
-# Fit a polynomial of degree 5
-vol_coeff = np.polyfit(x=frame, y=volumes, deg=deg_fit)
-y_fit = np.polyval(vol_coeff, frame)
-# Plot
 
-# Calculate the 1st derivative
-firstd_function = np.polyder(np.poly1d(vol_coeff))
-first_der = firstd_function(frame)
-#first_der = firstd_function(np.linspace(0,100,1))
-print(first_der)
-plt.plot(frame, first_der)
+dVolumes = [0]*(len(volumes)-1)
+for i in range(len(dVolumes)):
+    dVolumes[i] = volumes[i+1]-volumes[i]
 
-vol_coeff2 = np.polyfit(x=frame, y=first_der, deg=deg_fit-1)
-y_fit2 = np.polyval(vol_coeff2, frame)
-secd_function = np.polyder(np.poly1d(vol_coeff2))
-second_der = secd_function(frame)
-print(second_der)
+
+numFrames = len(dVolumes)
+t = np.arange(0, numFrames*dt, dt)
+
+# Polyfit dVolumes 
+
+volumesFitFunction = np.polyfit(t, volumes[:-1], deg)
+newDt = dt/100
+newT = np.arange(0, numFrames*dt, newDt)
+VolumesFit = np.polyval(volumesFitFunction, newT)
+
+if method == 1:
+    dVolumesFitFunction = np.polyfit(t, dVolumes, deg-1)
+else:
+    dVolumesFitFunction = np.polyder(volumesFitFunction, 1)
 
 
 
-def diff_array(input_array):
-    output = [0]
-    i=1
-    while i<len(input_array):
-        output.append(input_array[i-1]+input_array[i])
-        i=i+1
-    return np.array(output)
+dVolumesFit = np.polyval(dVolumesFitFunction, newT)
 
-def transform_array(input_array):
-    output=[]
-    output.append(input_array[0])
-    i=1
-    while i<len(input_array):
-        output.append(input_array[i]+output[i-1])
-        output[i-1]+=EDP
-        i=i+1
-    return output
+# Second derivative
+dd_VolumesFitFunction = np.polyder(dVolumesFitFunction, 1)
+dd_VolumesFit = np.polyval(dd_VolumesFitFunction, newT)
 
-change_in_vol=diff_array(first_der)
-my_fun=(density*0.1*diff_array(first_der)*second_der*0.0075)/(fps*area**2)
-#plt.plot(EDP, 'k--')
-#plt.plot(frame[:7],transform_array(my_fun)[:7], "ro-")
-#plt.xlabel("ime(s)")
-#plt.ylabel("Pressure(mmHg)")
-#print("The mean pressure is", np.mean(transform_array(my_fun)[:7])-EDP, "mmHG")
+if method == 1:
+    # Plot for discrete dVolumes
+    plt.figure(figsize=(10, 4))
+    plt.plot(t, dVolumes, 'o-', label='Discrete')
+    plt.title('Discrete dV/dt')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Change in Volume')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    # Plot for polynomial fit of dVolumes
+    plt.figure(figsize=(10, 4))
+    plt.plot(newT, dVolumesFit, label=f'{deg}-degree Polynomial Fit of dV/dt')
+    plt.title(f'{deg}-degree Polynomial Fit of dV/dt')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Change in Volume')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
+    # Plot for the derivative of the polynomial fit
+    plt.figure(figsize=(10, 4))
+    plt.plot(newT, dd_VolumesFit, label='Derivative of Polynomial Fit')
+    plt.title('Derivative of Polynomial Fit')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Rate of Change of Volume')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    
+else:
+    # Plot for discrete dVolumes
+    plt.figure(figsize=(10, 4))
+    plt.plot(t, volumes[:-1], 'o-', label='Discrete')
+    plt.title('Discrete dV/dt')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Absolute Volume')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    # Plot for discrete dVolumes
+    plt.figure(figsize=(10, 4))
+    plt.plot(newT, VolumesFit, label='Continuous')
+    plt.title(f'{deg}-degree Polynomial Fit of Volumes')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Polyfit of Absolute Volumes')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    # Plot for polynomial fit of dVolumes
+    plt.figure(figsize=(10, 4))
+    plt.plot(newT, dVolumesFit, label=f'{deg}-degree Polynomial Fit of dV/dt')
+    plt.title(f'{deg}-degree Polynomial Fit of dV/dt')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Change in Volume')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    # Plot for the derivative of the polynomial fit
+    plt.figure(figsize=(10, 4))
+    plt.plot(newT, dd_VolumesFit, label='Derivative of Polynomial Fit')
+    plt.title('Derivative of Polynomial Fit')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Rate of Change of Volume')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
 
+    
 
+# Obtaining deltaP
+
+numPoints = len(dVolumesFit)
+deltaP = [0]*(numPoints-1)
+
+CONSTANT = density/(area**2)*0.1*0.0075
+# Change this scaler to scale P(t)
+SCALER = 50000
+# Keep this 0 for now
+M = 0
+
+for i in range(numPoints-1):
+    deltaP[i] = SCALER*(CONSTANT*newDt*(dVolumesFit[i]+dVolumesFit[i+1])*dd_VolumesFit[i])+M
+
+P = sp.cumtrapz(deltaP, dx=newDt)
+
+P = [x+EDP for x in P]
+
+plt.plot(newT[:-2], P)
+plt.xlabel("Time (s)")
+plt.ylabel("Pressure (mmHg)")
+plt.show()
