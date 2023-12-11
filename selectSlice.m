@@ -1,6 +1,6 @@
 function slice = selectSlice(data, range)
     prompt = 'Choose this slice?';
-    promptInc = 'Advance how many frames?'
+    promptInc = 'Advance how many frames?';
 %     breakLoop = false;
     s = 1;
     while (1 <= s) && (s <= range)

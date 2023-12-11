@@ -19,6 +19,6 @@ function results = calculatePressure(aorticArea, volumes, frameRate)
         v2 = volumes(i+1);
         v3 = volumes(i+2);
         result = density * (v3 - v2) * ((v3 - v2) - (v2 - v1)) * (frameRate^2) / (aorticArea^2);
-        results(i) = result*10*0.00750062; %results in units of 0.1Pa %result in Pa %result in mmHg
+        results(i) = result/10*0.00750062; %results in units of 0.1Pa %result in Pa %result in mmHg
     end
 end

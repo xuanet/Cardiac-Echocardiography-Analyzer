@@ -19,8 +19,8 @@ disp('Jose, Kevin, Nidhi');
 
 % Importing echo
 
-heart = resampleDicom('002A.dcm');
-fr = 15;
+heart = resampleDicom('p021_1a.dcm');
+fr = 32;
 cmPerPixel = heart.depthspan/heart.depth;
 
 % Find aorta cross-section area on frame 2 (1 frame after ED)
