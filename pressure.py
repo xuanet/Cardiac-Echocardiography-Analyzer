@@ -40,36 +40,105 @@ dVolumes = [0]*(len(volumes)-1)
 for i in range(len(dVolumes)):
     dVolumes[i] = volumes[i+1]-volumes[i]
 
+
 numFrames = len(dVolumes)
-
-
 t = np.arange(0, numFrames*dt, dt)
 
 # Polyfit dVolumes 
 
 volumesFitFunction = np.polyfit(t, volumes[:-1], deg)
+newDt = dt/100
+newT = np.arange(0, numFrames*dt, newDt)
+VolumesFit = np.polyval(volumesFitFunction, newT)
 
 if method == 1:
     dVolumesFitFunction = np.polyfit(t, dVolumes, deg-1)
 else:
     dVolumesFitFunction = np.polyder(volumesFitFunction, 1)
 
-newDt = dt/100
-newT = np.arange(0, numFrames*dt, newDt)
+
+
 dVolumesFit = np.polyval(dVolumesFitFunction, newT)
 
-
 # Second derivative
-
 dd_VolumesFitFunction = np.polyder(dVolumesFitFunction, 1)
 dd_VolumesFit = np.polyval(dd_VolumesFitFunction, newT)
 
-plt.plot(t, dVolumes, label='discrete')
-plt.plot(newT, dVolumesFit, label=str(deg)+" degree polyfit")
-plt.plot(newT, dd_VolumesFit, label='derivative')
-plt.legend()
-plt.show()
+if method == 1:
+    # Plot for discrete dVolumes
+    plt.figure(figsize=(10, 4))
+    plt.plot(t, dVolumes, 'o-', label='Discrete')
+    plt.title('Discrete dV/dt')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Change in Volume')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    # Plot for polynomial fit of dVolumes
+    plt.figure(figsize=(10, 4))
+    plt.plot(newT, dVolumesFit, label=f'{deg}-degree Polynomial Fit of dV/dt')
+    plt.title(f'{deg}-degree Polynomial Fit of dV/dt')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Change in Volume')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
+    # Plot for the derivative of the polynomial fit
+    plt.figure(figsize=(10, 4))
+    plt.plot(newT, dd_VolumesFit, label='Derivative of Polynomial Fit')
+    plt.title('Derivative of Polynomial Fit')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Rate of Change of Volume')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    
+else:
+    # Plot for discrete dVolumes
+    plt.figure(figsize=(10, 4))
+    plt.plot(t, volumes[:-1], 'o-', label='Discrete')
+    plt.title('Discrete dV/dt')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Absolute Volume')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    # Plot for discrete dVolumes
+    plt.figure(figsize=(10, 4))
+    plt.plot(newT, VolumesFit, label='Continuous')
+    plt.title(f'{deg}-degree Polynomial Fit of Volumes')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Polyfit of Absolute Volumes')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    # Plot for polynomial fit of dVolumes
+    plt.figure(figsize=(10, 4))
+    plt.plot(newT, dVolumesFit, label=f'{deg}-degree Polynomial Fit of dV/dt')
+    plt.title(f'{deg}-degree Polynomial Fit of dV/dt')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Change in Volume')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    # Plot for the derivative of the polynomial fit
+    plt.figure(figsize=(10, 4))
+    plt.plot(newT, dd_VolumesFit, label='Derivative of Polynomial Fit')
+    plt.title('Derivative of Polynomial Fit')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Rate of Change of Volume')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+
+    
 
 # Obtaining deltaP
 
@@ -85,11 +154,6 @@ M = 0
 for i in range(numPoints-1):
     deltaP[i] = SCALER*(CONSTANT*newDt*(dVolumesFit[i]+dVolumesFit[i+1])*dd_VolumesFit[i])+M
 
-# plt.plot(newT[:-1], deltaP)
-# plt.show()
-
-# Plotting P
-
 P = sp.cumtrapz(deltaP, dx=newDt)
 
 P = [x+EDP for x in P]
@@ -98,8 +162,3 @@ plt.plot(newT[:-2], P)
 plt.xlabel("Time (s)")
 plt.ylabel("Pressure (mmHg)")
 plt.show()
-
-
-
-
-
