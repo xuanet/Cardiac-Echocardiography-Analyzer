@@ -64,7 +64,7 @@ function aa = AorticArea(data, cmPerPixel)
         extract = squeeze(curSlice);
         figure(1)
         imshow(extract', []);
-        title("Rotated angle: %d", angle);
+        title("Rotated angle: "+ angle);
     end
     
     disp('Enclose the aorta');
