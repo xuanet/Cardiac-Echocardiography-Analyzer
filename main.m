@@ -7,16 +7,6 @@ close all;
 disp('Aortic Pressure from Echo');
 disp('Jose, Kevin, Nidhi');
 
-% Setting figure size and pos
-
-% screen = get(0, 'screensize');
-% screenWidth = screen(3);
-% screenHeight = screen(4);
-% figDimension = floor(min(screenWidth, screenHeight)/1.5);
-% xpos = floor((screenWidth-figDimension)/2);
-% ypos = floor((screenHeight-figDimension)/2);
-% set(groot, 'defaultFigureUnits', 'pixels', 'defaultFigurePosition', [xpos ypos figDimension figDimension]);
-
 % Importing echo
 
 heart = resampleDicom('p021_1a.dcm');
@@ -38,13 +28,7 @@ for time = 1:heart.NumVolumes
     volumeArr(time) = findVolume(reorientedVentricle, 4, cmPerPixel, d);
 end
 
-% Calculating P(t)
-
-pressureArr = calculatePressure(aortaArea, volumeArr, fr);
-
-% Plotting
-
-plotPressures(pressureArr, fr);
+fprintf("Now you have a volume array (volumeArr), paste the data into a new csv file (same format as 2.csv). Run pressure.py by changing ln27 to the correct csv file");
 
 % End
 

@@ -3,7 +3,13 @@ function slice = selectSlice(data, range)
     promptInc = 'Advance how many frames?';
 %     breakLoop = false;
     s = 1;
+    disp(range);
     while (1 <= s) && (s <= range)
+        if s == range
+            fprintf("I love ella freya <3");
+            imshow("debug.jpeg");
+            break
+        end
         currentSlice = data(:,s,:);
         imgH = squeeze(currentSlice);
         figure(1)
